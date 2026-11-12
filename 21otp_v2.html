@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21OTP</title>
+<style>
+:root {
+  --bg: #0a0c14; --card: #131620; --hover: #1c1f2e; --line: #252940;
+  --text: #e2e4ee; --text2: #787c99; --accent: #6c72ff; --green: #4ade80;
+  --red: #f87171; --amber: #fbbf24; --r: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);height:100dvh;overflow:hidden}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:none;background:none}
+.app{display:flex;height:100dvh}
+.sidebar{width:280px;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.email-list{flex:1;overflow-y:auto}
+.otp-panel{width:280px;background:var(--card);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;flex-shrink:0}
+@media(max-width:900px){.sidebar{display:none}.otp-panel{display:none}}
+.sidebar-head{padding:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.sidebar-head .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#8b90ff);border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff}
+.sidebar-head .title{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.import-area{margin:8px;border:1px dashed var(--line);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;color:var(--text2);font-size:12px;transition:.15s}
+.import-area:hover{border-color:var(--accent);color:var(--accent);background:var(--hover)}
+#fileInput{display:none}
+#importResult{font-size:11px;color:var(--green);padding:4px 8px;display:none}
+.acc-list{flex:1;overflow-y:auto;padding:4px 0}
+.acc-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;transition:.12s;font-size:12px;border-left:2px solid transparent}
+.acc-item:hover{background:var(--hover)}
+.acc-item.active{background:var(--hover);border-left-color:var(--accent)}
+.acc-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.acc-dot.error{background:var(--red)}
+.acc-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.acc-email{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-otp-count{font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:8px;font-weight:600}
+.acc-actions{display:flex;gap:4px;padding:8px 14px;border-top:1px solid var(--line)}
+.acc-actions button{flex:1;padding:6px;font-size:11px;border-radius:var(--r);background:var(--hover);color:var(--text2);transition:.12s}
+.acc-actions button:hover{background:var(--line);color:var(--text)}
+.acc-actions .danger{color:var(--red)}.acc-actions .danger:hover{background:var(--red);color:#fff}
+.email-header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.email-header .count{color:var(--text2)}
+.email-item{padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s}
+.email-item:hover{background:var(--hover)}
+.email-item.has-otp{border-left:2px solid var(--green)}
+.email-from{font-size:12px;font-weight:600;margin-bottom:2px}
+.email-subject{font-size:11px;color:var(--text2);margin-bottom:2px}
+.email-preview{font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.email-time{font-size:10px;color:var(--text2);margin-top:4px}
+.email-otps{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.email-otp-tag{font-size:16px;font-weight:700;background:var(--accent);color:#fff;padding:2px 8px;border-radius:4px;letter-spacing:.15em;cursor:pointer;font-family:monospace}
+.email-otp-tag:hover{background:#8b90ff}
+.state-empty{text-align:center;padding:40px 16px;color:var(--text2);font-size:13px}
+.otp-head{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.otp-head .count{font-size:11px;background:var(--accent);color:#fff;padding:1px 8px;border-radius:10px}
+.otp-list{flex:1;overflow-y:auto;padding:8px}
+.otp-card{background:var(--hover);border-radius:var(--r);padding:10px;margin-bottom:6px}
+.otp-card .from{font-size:10px;color:var(--text2);margin-bottom:4px}
+.otp-card .code{font-size:28px;font-weight:700;letter-spacing:.25em;font-family:monospace;color:var(--green);cursor:pointer;user-select:all}
+.otp-card .code:hover{color:#6fff9e}
+.otp-card .subject{font-size:10px;color:var(--text2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otp-card .time{font-size:9px;color:var(--text2);margin-top:2px}
+.no-otp{text-align:center;padding:20px;color:var(--text2);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99;padding:10px 20px;border-radius:20px;font-size:13px;background:var(--card);color:var(--text);box-shadow:0 4px 24px rgba(0,0,0,.5);display:none}
+.toast.show{display:block;animation:slideUp .2s ease}
+.toast.ok{background:var(--green);color:#000}
+.toast.err{background:var(--red);color:#fff}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--text2)}
+.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-head"><div class="logo">21</div><div><div class="title">21OTP</div></div></div>
+    <div class="import-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:20px;margin-bottom:4px">📥</div>
+      <div>Drop file or click</div>
+      <div style="font-size:9px;margin-top:4px;opacity:.6">email|pass|token|clientId|recovery</div>
+    </div>
+    <input type="file" id="fileInput" accept=".txt,.csv,.tsv,.log" onchange="handleFile(event)">
+    <div id="importResult"></div>
+    <div class="acc-list" id="accList"><div class="state-empty">Drop accounts file</div></div>
+    <div class="acc-actions">
+      <button onclick="refreshAll()">🔄 Refresh All</button>
+      <button class="danger" onclick="clearAll()">🗑 Clear</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="email-header"><span id="emailLabel">Select an account</span><span class="count" id="emailCount"></span></div>
+    <div class="email-list" id="emailList"><div class="state-empty">← Import accounts to start</div></div>
+  </div>
+  <div class="otp-panel" id="otpPanel">
+    <div class="otp-head">🔑 OTPs <span class="count" id="otpCount">0</span></div>
+    <div class="otp-list" id="otpList"><div class="no-otp">No OTPs</div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const STORE='21otp_accts',API='http://localhost:8900';
+let accts=[],sel=null,allOtps=[];
+function gA(){try{return JSON.parse(localStorage.getItem(STORE))||[]}catch{return[]}}
+function sA(a){accts=a;localStorage.setItem(STORE,JSON.stringify(a));rS()}
+function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='toast show '+t;clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2500)}
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--accent)'});
+dz.addEventListener('dragleave',()=>dz.style.borderColor='');
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';if(e.dataTransfer.files.length)processFile(e.dataTransfer.files[0])});
+function handleFile(e){if(e.target.files.length)processFile(e.target.files[0])}
+async function processFile(f){const t=await f.text();const ls=t.split(/[\r\n]+/).filter(l=>l.trim()&&!l.startsWith('#'));const a=gA();let ad=0;for(const l of ls){let p;if(l.includes('|'))p=l.split('|');else if(l.includes('----'))p=l.split('----');else if(l.includes('\t'))p=l.split('\t');else{p=l.trim().split(/\s+/);if(p.length<3)continue}p=p.map(x=>x.trim().replace(/^["']|["']$/g,''));const em=p[0],tk=p[2],ci=p[3]||'';if(!em||!em.includes('@')||!tk)continue;if(a.find(x=>x.email.toLowerCase()===em.toLowerCase()))continue;a.push({email:em,token:tk,clientId:ci,otps:[],emails:[]});ad++}sA(a);document.getElementById('importResult').style.display='';document.getElementById('importResult').textContent=`✅ +${ad}`;toast(`Imported ${ad}`,'ok')}
+function rS(){const a=gA();document.getElementById('accList').innerHTML=a.length?a.map((x,i)=>`<div class="acc-item ${sel===i?'active':''}" onclick="select(${i})"><div class="acc-dot ${x.error?'error':(x.loading?'loading':'')}"></div><div class="acc-email">${esc(x.email.split('@')[0])}</div>${x.otps?.length?`<div class="acc-otp-count">${x.otps.length}</div>`:''}</div>`).join(''):'<div class="state-empty">Drop accounts file</div>'}
+async function select(i){sel=i;const a=gA()[i];a.loading=true;sA(accts);document.getElementById('emailLabel').textContent=a.email;document.getElementById('emailList').innerHTML='<div class="loading"><div class="spin"></div>Fetching...</div>';try{const p=new URLSearchParams({email:a.email,token:a.token,client:a.clientId,limit:'30'});const r=await fetch(`${API}/api/fetch?${p}`);const d=await r.json();if(!r.ok)throw new Error(d.error||'Failed');a.emails=d.emails||[];a.otps=[];a.emails.forEach(e=>{e.otps?.forEach(o=>a.otps.push({code:o,from:e.from,subject:e.subject,date:e.date}))});a.loading=false;a.error=false;if(d.newToken)a.token=d.newToken;sA(accts);rE();uO();toast(`Loaded ${a.emails.length}`,'ok')}catch(e){a.loading=false;a.error=true;sA(accts);document.getElementById('emailList').innerHTML=`<div class="state-empty">❌ ${esc(e.message)}</div>`;toast(e.message,'err')}}
+function rE(){if(sel===null)return;const a=accts[sel];const ems=a.emails||[];document.getElementById('emailCount').textContent=`${ems.length} emails`;document.getElementById('emailList').innerHTML=ems.length?ems.map((e,i)=>`<div class="email-item ${e.otps?.length?'has-otp':''}" onclick="copyOtp('${esc((e.otps||[])[0]||'')}')"><div class="email-from">${esc(e.from)}</div><div class="email-subject">${esc(e.subject||'(none)')}</div>${e.otps?.length?`<div class="email-otps">${e.otps.map(o=>`<span class="email-otp-tag" onclick="event.stopPropagation();copyOtp('${o}')">${o}</span>`).join('')}</div>`:''}<div class="email-preview">${esc((e.preview||'').slice(0,80))}</div><div class="email-time">${fmt(e.date)}</div></div>`).join(''):'<div class="state-empty">No emails</div>'}
+function uO(){allOtps=[];accts.forEach(a=>{(a.otps||[]).forEach(o=>allOtps.push({...o,account:a.email}))});allOtps.sort((a,b)=>(b.date||'').localeCompare(a.date||''));document.getElementById('otpCount').textContent=allOtps.length;document.getElementById('otpList').innerHTML=allOtps.length?allOtps.map(o=>`<div class="otp-card"><div class="from">${esc(o.from||o.account||'')}</div><div class="code" onclick="copyOtp('${esc(o.code)}')" title="Click to copy">${esc(o.code)}</div><div class="subject">${esc(o.subject||'')}</div><div class="time">${fmt(o.date)}</div></div>`).join(''):'<div class="no-otp">No OTPs</div>'}
+async function refreshAll(){const a=gA();for(let i=0;i<a.length;i++){a[i].loading=true;sA(a);try{const p=new URLSearchParams({email:a[i].email,token:a[i].token,client:a[i].clientId,limit:'30'});const r=await fetch(`${API}/api/fetch?${p}`);const d=await r.json();if(r.ok){a[i].emails=d.emails||[];a[i].otps=[];a[i].emails.forEach(e=>{e.otps?.forEach(o=>a[i].otps.push({code:o,from:e.from,subject:e.subject,date:e.date}))});a[i].error=false;if(d.newToken)a[i].token=d.newToken}else{a[i].error=true}}catch(e){a[i].error=true}a[i].loading=false;sA(a);if(i===sel)rE();uO()}toast(`Refreshed ${a.length}`,'ok')}
+function clearAll(){if(!confirm('Delete all?'))return;localStorage.removeItem(STORE);accts=[];sel=null;allOtps=[];rS();document.getElementById('emailList').innerHTML='<div class="state-empty">← Import accounts</div>';document.getElementById('otpList').innerHTML='<div class="no-otp">No OTPs</div>';document.getElementById('otpCount').textContent='0';document.getElementById('emailLabel').textContent='Select';document.getElementById('emailCount').textContent=''}
+function copyOtp(c){if(!c)return;navigator.clipboard.writeText(c).then(()=>toast(`Copied: ${c}`,'ok'))}
+function fmt(d){if(!d)return'';try{return new Date(d).toLocaleString()}catch{return d}}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+accts=gA();rS();if(accts.length){sel=0;select(0)}
+</script>
+</body>
+</html>
