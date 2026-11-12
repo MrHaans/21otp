@@ -104,7 +104,7 @@ button,input{font:inherit;color:inherit}button{cursor:pointer;border:none;backgr
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const STORE='21otp_accts',API='http://localhost:8900';
+const STORE='21otp_accts',API='';
 let accts=[],sel=null,allOtps=[];
 function gA(){try{return JSON.parse(localStorage.getItem(STORE))||[]}catch{return[]}}
 function sA(a){accts=a;localStorage.setItem(STORE,JSON.stringify(a));rS()}
